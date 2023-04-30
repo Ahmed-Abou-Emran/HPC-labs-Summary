@@ -1,0 +1,67 @@
+// This program uses OpenMP to implement the selection sort algorithm on an array of size N=10000 with random numbers.
+// We use a parallel for loop to divide the work among the available threads,
+// with each thread finding the minimum element in its assigned portion of the array and swapping it with the first element in that portion.
+// We use the barrier directive to synchronize the threads after each iteration of the outer loop.
+
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+   int n = 10000;
+   int a[n];
+
+   // Initialize the array a with random values between 0 and 1000
+   for (int i = 0; i < n; i++) {
+      a[i] = rand() % 1001;
+   }
+
+   #pragma omp parallel
+   {
+      for (int i = 0; i < n-1; i++) {
+         int min_index = i;
+
+         #pragma omp for
+         for (int j = i+1; j < n; j++) {
+            if (a[j] < a[min_index]) {
+               min_index = j;
+            }
+         }
+
+         #pragma omp single
+         {
+            int temp = a[i];
+            a[i] = a[min_index];
+            a[min_index] = temp;
+         }
+
+         #pragma omp barrier
+      }
+   }
+
+   // Print the sorted array
+   for (int i = 0; i < n; i++) {
+      cout << a[i] << " ";
+   }
+   cout << endl;
+
+   return 0;
+}
+
+// Explanation:
+// This program uses OpenMP to implement the selection sort algorithm on an array of size N=10000 with random numbers.
+// We first define an integer variable n to specify the size of the array a, which we initialize with random values between 0 and 1000.
+// We use a parallel for loop to divide the work among the available threads,
+// with each thread finding the minimum element in its assigned portion of the array and swapping it with the first element in that portion.
+// We use the single directive to ensure that only one thread at a time performs the swap operation.
+// We use the barrier directive to synchronize the threads after each iteration of the outer loop to ensure that all threads have completed the current iteration before proceeding to the next.
+// Finally, we print the sorted array.
+
+// Explanation summary:
+// This program uses OpenMP to implement the selection sort algorithm on an array of size N=10000 with random numbers.
+// We use a parallel for loop to distribute the work among the available threads,
+// with each thread finding the minimum element in its assigned portion of the array and swapping it with the first element in that portion.
+// The single directive is used to ensure that only one thread at a time performs the swap operation.
+// The barrier directive is used to synchronize the threads after each iteration of the outer loop to ensure that all threads have completed the current iteration before proceeding to the next.
+// The program then prints the sorted array.
