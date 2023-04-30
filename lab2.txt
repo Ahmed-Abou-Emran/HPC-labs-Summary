@@ -1,0 +1,91 @@
+OpenMP is an API (Application Programming Interface) for shared-memory multiprocessing programming in C, C++, and Fortran. It allows you to write parallel code that can run on multiple processors/cores of a single computer. Here are some basics of OpenMP:
+
+1. Parallel regions: OpenMP programs consist of sequential regions and parallel regions. A parallel region is a block of code that can be executed in parallel by multiple threads. It is marked by a pragma directive, which starts with `#pragma omp parallel`.
+
+2. Threads: Threads are lightweight processes that execute the code in parallel. The number of threads can be specified using the `num_threads` clause in the `#pragma omp parallel` directive.
+
+3. Shared and private variables: OpenMP provides mechanisms to share variables between threads and to create private variables that are not shared. Shared variables are accessible by all threads, while private variables are local to each thread.
+
+4. Synchronization: OpenMP provides synchronization constructs such as barriers, locks, and critical sections to ensure that threads access shared data safely.
+
+5. Work sharing: OpenMP provides constructs for dividing work among threads. For example, the `#pragma omp for` directive divides a loop into iterations that can be executed in parallel.
+
+6. Nested parallelism: OpenMP allows for nested parallelism, which means that a parallel region can contain another parallel region. However, it is important to be cautious when using nested parallelism to avoid oversubscription of threads.
+
+OpenMP is a powerful tool for writing parallel programs that can take advantage of multicore processors. However, it requires careful design and understanding of the underlying concepts to ensure that programs are correct and efficient.
+
+
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    // Explanation: OpenMP is an API for shared-memory multiprocessing programming in C, C++, and Fortran.
+    // Code:
+    // #include <omp.h>
+
+    // Explanation: A parallel region is a block of code that can be executed in parallel by multiple threads.
+    // Code:
+    #pragma omp parallel
+    {
+        printf("Hello, world! Thread ID: %d\n", omp_get_thread_num());
+    }
+
+    // Explanation: Threads are lightweight processes that execute the code in parallel.
+    // Code:
+    // The same as above, but with a num_threads clause to specify the number of threads to use.
+    #pragma omp parallel num_threads(4)
+    {
+        int thread_id = omp_get_thread_num();
+        printf("Thread ID: %d\n", thread_id);
+    }
+
+    // Explanation: Shared and private variables can be used to share or isolate data between threads.
+    // Code:
+    // Shared variable
+    int sum = 0;
+    #pragma omp parallel
+    {
+        sum++;
+    }
+    printf("Sum (shared): %d\n", sum);
+
+    // Private variable
+    sum = 0;
+    #pragma omp parallel private(sum)
+    {
+        sum++;
+    }
+    printf("Sum (private): %d\n", sum);
+
+    // Explanation: Synchronization can be used to ensure that threads access shared data safely.
+    // Code:
+    #pragma omp parallel
+    {
+        printf("Hello from thread %d\n", omp_get_thread_num());
+        #pragma omp barrier
+        #pragma omp master
+        printf("All threads finished!\n");
+    }
+
+    // Explanation: Work sharing can be used to divide work among threads.
+    // Code:
+    sum = 0;
+    #pragma omp parallel for
+    for (int i = 0; i < 10; i++) {
+        sum += i;
+    }
+    printf("Sum: %d\n", sum);
+
+    // Explanation: Nested parallelism allows a parallel region to contain another parallel region.
+    // Code:
+    #pragma omp parallel num_threads(4)
+    {
+        printf("Hello from thread %d\n", omp_get_thread_num());
+        #pragma omp parallel num_threads(2)
+        {
+            printf("    Hello from nested thread %d\n", omp_get_thread_num());
+        }
+    }
+
+    return 0;
+}
