@@ -1,0 +1,41 @@
+#include <iostream>
+#include <random>
+#include <omp.h>
+
+using namespace std;
+
+// This program uses the Monte Carlo method to approximate the value of pi.
+// It generates a large number of random points within a square of side length 2,
+// and counts the number of points that fall within a circle of radius 1 centered at the origin.
+// The ratio of the number of points in the circle to the total number of points is an estimate of the area of the circle,
+// which can be used to approximate the value of pi as pi = 4 * area / radius^2.
+// This program uses OpenMP to parallelize the loop that generates the random points,
+// with each thread generating a private copy of the x and y coordinates and accumulating the count of points within the circle.
+// The results from each thread are combined using a reduction operation.
+
+int main() {
+   int i, count = 0, n = 100000000;
+   double x, y, pi, r;
+
+   // define the number of points and initialize a counter to 0
+   // define a random number generator with a uniform distribution over the range [-1, 1]
+   std::default_random_engine generator;
+   std::uniform_real_distribution<double> distribution(-1.0, 1.0);
+
+   #pragma omp parallel for private(x, y, r) reduction(+:count)
+   // parallelize the loop and create a private copy of x, y, and r for each thread
+   // initialize count to 0 in each thread
+   // add the value of count from each thread using the + operator
+   for (i = 0; i < n; i++) {
+      x = distribution(generator);
+      y = distribution(generator);
+      r = x * x + y * y;
+      if (r <= 1.0) {
+         count++; // increment the count if the point falls within the unit circle
+      }
+   }
+
+   pi = 4.0 * count / n; // calculate the approximation of pi
+   cout << "Approximation of pi = " << pi << endl; // print the result
+   return 0;
+}
