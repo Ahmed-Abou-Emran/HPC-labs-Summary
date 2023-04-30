@@ -1,0 +1,71 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+    // Define the size of the array, the number to search for, and the number of threads
+    int size = 100;
+    int number_to_find = 42;
+    int num_threads = 4;
+
+    // Create the array and initialize it with random values
+    vector<int> arr(size);
+    for (int i = 0; i < size; i++) {
+        arr[i] = rand() % 100;
+    }
+
+    // Set the number of threads
+    omp_set_num_threads(num_threads);
+
+    // Create a vector to store the indices where the number is found
+    vector<int> indices;
+
+    // Use parallel for to search for the number
+    #pragma omp parallel for
+    for (int i = 0; i < size; i++) {
+        if (arr[i] == number_to_find) {
+            int thread_id = omp_get_thread_num();  // Get the ID of the current thread
+            indices.push_back(i);  // Add the index to the vector
+            cout << "Thread " << thread_id << " found the number at index " << i << endl;
+        }
+    }
+
+    // If the vector is empty, the number was not found
+    if (indices.empty()) {
+        cout << "The number was not found." << endl;
+    }
+    else {
+        cout << "The number was found at the following indices:" << endl;
+        for (int i = 0; i < indices.size(); i++) {
+            cout << indices[i] << " ";
+        }
+        cout << endl;
+    }
+
+    return 0;
+}
+
+
+/*
+Explanation:
+
+1. First, we include the necessary libraries, which are `iostream`, `vector`, and `omp.h`.
+
+2. We define the size of the array, the number to search for, and the number of threads to be used. In this example, we use an array of size 100, search for the number 42, and use four threads.
+
+3. We create an array `arr` of size `size` and initialize it with random values.
+
+4. We set the number of threads to be used using the `omp_set_num_threads` function.
+
+5. We create a vector `indices` to store the indices where the number is found.
+
+6. We use the `#pragma omp parallel for` directive to parallelize the loop that searches for the number. This directive tells OpenMP to distribute the loop iterations among the available threads.
+
+7. Inside the loop, we check if the current element of the array is equal to the number we are searching for. If it is, we get the ID of the current thread using `omp_get_thread_num` and add the index to the `indices` vector. We also print a message indicating which thread found the number and at which index.
+
+8. After the loop, we check if the `indices` vector is empty. If it is, the number was not found. If it is not empty, we print the indices where the number was found.
+
+By using OpenMP to parallelize the loop that searches for the number, we can speed up the search significantly. Instead of executing the loop sequentially, OpenMP distributes the loop iterations among the available threads, which allows multiple comparisons to be performed simultaneously.
+*/

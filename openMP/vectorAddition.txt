@@ -1,0 +1,57 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+    // Define the size of the vectors and the number of threads
+    int size = 1000000;
+    int num_threads = 4;
+
+    // Create the vectors and initialize them with values
+    vector<int> a(size);
+    vector<int> b(size);
+    vector<int> c(size);
+    for (int i = 0; i < size; i++) {
+        a[i] = i;
+        b[i] = 2 * i;
+    }
+
+    // Set the number of threads
+    omp_set_num_threads(num_threads);
+
+    // Use parallel for to add the vectors
+    #pragma omp parallel for
+    for (int i = 0; i < size; i++) {
+        c[i] = a[i] + b[i];
+    }
+
+    // Print the results
+    for (int i = 0; i < size; i++) {
+        cout << c[i] << " ";
+    }
+    cout << endl;
+
+    return 0;
+}
+
+/*
+Explanation:
+
+1. First, we include the necessary libraries, which are `iostream`, `vector`, and `omp.h`.
+
+2. We define the size of the vectors and the number of threads to be used. In this example, we use a size of 1000000 and four threads.
+
+3. We create three vectors `a`, `b`, and `c` and initialize `a` with values from 0 to `size - 1` and `b` with values from 0 to `2 * (size - 1)`.
+
+4. We set the number of threads to be used using the `omp_set_num_threads` function.
+
+5. We use the `#pragma omp parallel for` directive to parallelize the loop that adds the vectors. This directive tells OpenMP to distribute the loop iterations among the available threads.
+
+6. Inside the loop, we add the corresponding elements of `a` and `b` and store the result in `c`.
+
+7. Finally, we print the values of `c`.
+
+By using OpenMP to parallelize the loop that adds the vectors, we can speed up the calculation significantly. Instead of executing the loop sequentially, OpenMP distributes the loop iterations among the available threads, which allows multiple additions to be performed simultaneously.
+*/
