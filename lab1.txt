@@ -1,0 +1,26 @@
+# Shared Memory:
+In a shared memory system, multiple processors or cores within a single computer have access to a common pool of memory. 
+The processors can communicate with each other by reading and writing to the shared memory. 
+
+This approach is often used in symmetric multiprocessing (SMP) systems, where multiple processors share access to the same physical memory. 
+
+Shared memory systems can be easier to program than other parallel computing approaches, but they may suffer from scalability issues as the number of processors increases.
+
+# Distributed Memory:
+ In a distributed memory system, multiple computers or nodes are connected through a network, and each node has its own local memory. 
+ 
+ The processors can communicate with each other by passing messages over the network.
+ 
+  This approach is often used in high-performance computing (HPC) clusters, where multiple nodes work together to solve a single problem. 
+  
+  Distributed memory systems can be more difficult to program than shared memory systems, but they can scale to larger numbers ofprocessors.
+
+# GPGPU:
+
+GPGPU (general-purpose computing on graphics processing units) refers to the use of graphics processing units (GPUs) for non-graphics computing tasks.
+ 
+GPUs are designed to handle a large number of parallel computations simultaneously, making them well-suited for certain types of scientific and engineering applications. 
+
+GPGPU typically involves using specialized programming models, such as CUDA or OpenCL, to offload computations to the GPU. 
+
+GPGPU can offer significant performance improvements over traditional CPU-based computing, but it may require significant effort to port an application to a GPU-based architecture.
