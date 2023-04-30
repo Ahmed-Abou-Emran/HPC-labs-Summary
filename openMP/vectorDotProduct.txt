@@ -1,0 +1,27 @@
+#include <omp.h>
+#include <stdio.h>
+
+#define N 1000000
+
+int main() {
+   int i;
+   double a[N], b[N], sum = 0.0;
+
+   // initialize arrays a and b
+   for (i = 0; i < N; i++) {
+      a[i] = 1.0;
+      b[i] = 2.0;
+   }
+
+   #pragma omp parallel for reduction(+:sum)
+   // parallelize the loop and create a private copy of sum for each thread
+   // initialize each private copy of sum to 0.0
+   // add the partial sum of the dot product to each private copy of sum
+   // combine the partial sums from all threads using the + operator and store the result in sum
+   for (i = 0; i < N; i++) {
+      sum += a[i] * b[i];
+   }
+
+   printf("Dot product = %f\n", sum); // print the dot product of the two vectors
+   return 0;
+}
