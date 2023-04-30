@@ -1,0 +1,54 @@
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+    int num_threads = 4;
+    int shared_var = 0;
+    int private_var = 0;
+
+    // Set the number of threads
+    omp_set_num_threads(num_threads);
+
+    // Use parallel for with shared and private clauses
+    #pragma omp parallel for shared(shared_var) private(private_var)
+    for (int i = 0; i < 10; i++) {
+        shared_var += i;
+        private_var += i;
+        int thread_id = omp_get_thread_num();
+        cout << "Thread " << thread_id << ": shared_var = " << shared_var << ", private_var = " << private_var << endl;
+    }
+
+    // Use reduction clause
+    int reduction_var = 0;
+    #pragma omp parallel for reduction(+:reduction_var)
+    for (int i = 0; i < 10; i++) {
+        reduction_var += i;
+    }
+    cout << "The sum of numbers from 0 to 9 is " << reduction_var << endl;
+
+    return 0;
+}
+
+/*
+Explanation:
+
+1. First, we include the necessary libraries, which are `iostream` and `omp.h`.
+
+2. We define the number of threads and variables to be used.
+
+3. We set the number of threads to be used using the `omp_set_num_threads` function.
+
+4. We use parallel for with the `shared` and `private` clauses to parallelize a loop. The `shared` clause indicates that the variable `shared_var` should be shared among all threads, while the `private` clause indicates that the variable `private_var` should be private to each thread.
+
+5. Inside the loop, we add the current index to both `shared_var` and `private_var`. We also get the ID of the current thread using `omp_get_thread_num` and print the values of `shared_var` and `private_var` for each thread.
+
+6. We use parallel for with the `reduction` clause to parallelize another loop and perform a reduction operation on a variable. The `reduction` clause specifies that the variable `reduction_var` should be initialized to zero and that a summation operation should be performed on it.
+
+7. Inside the loop, we add the current index to `reduction_var` using the `+` operator.
+
+8. After the loop, we print the final value of `reduction_var`, which should be the sum of numbers from 0 to 9.
+
+By using Data Scope Attribute Clauses in OpenMP, we can control how variables are shared or private among threads and perform reduction operations on variables in parallel regions.
+*/
