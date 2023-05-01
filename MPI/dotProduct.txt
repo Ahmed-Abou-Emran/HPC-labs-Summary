@@ -1,0 +1,78 @@
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int vector_size = 10;
+    std::vector<int> x(vector_size);
+    std::vector<int> y(vector_size);
+
+    if (world_rank == 0) {
+        // Initialize vectors
+        for (int i = 0; i < vector_size; i++) {
+            x[i] = i + 1;
+            y[i] = i + 2;
+        }
+    }
+
+    // Distribute vector chunks to other processes using MPI_Scatter
+    std::vector<int> local_x(vector_size / world_size);
+    std::vector<int> local_y(vector_size / world_size);
+    MPI_Scatter(x.data(), vector_size / world_size, MPI_INT, local_x.data(), vector_size / world_size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(y.data(), vector_size / world_size, MPI_INT, local_y.data(), vector_size / world_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Calculate dot product of local vectors
+    int local_dot_product = 0;
+    for (int i = 0; i < vector_size / world_size; i++) {
+        local_dot_product += local_x[i] * local_y[i];
+    }
+
+    int global_dot_product;
+    MPI_Allreduce(&local_dot_product, &global_dot_product, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    if (world_rank == 0) {
+        // Print dot product of entire vectors
+        std::cout << "Dot product: " << global_dot_product << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int vector_size and std::vector<int> x(vector_size) and std::vector<int> y(vector_size) define the size of the vectors and the dynamic arrays that hold the data.
+
+// The if statement for world_rank == 0 initializes the vectors x and y with consecutive integers starting from 1 and 2, respectively.
+
+// The MPI_Scatter(x.data(), vector_size / world_size, MPI_INT, local_x.data(), vector_size / world_size, MPI_INT, 0, MPI_COMM_WORLD) and MPI_Scatter(y.data(), vector_size / world_size, MPI_INT, local_y.data(), vector_size / world_size, MPI_INT, 0, MPI_COMM_WORLD) distribute vector chunks of size vector_size / world_size to other processes in the MPI communicator.
+
+// The std::vector<int> local_x(vector_size / world_size) and std::vector<int> local_y(vector_size / world_size) define the local vectors that hold the vector chunks received from the master process.
+
+// The for loop calculates a local dot product of the local vectors.
+
+// The MPI_Allreduce(&local_dot_product, &global_dot_product, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) performs a reduction operation on the local dot product of each process and returns the global dot product to all processes in the MPI communicator.
+
+// The if statement for world_rank == 0 prints the dot product of the entire vectors.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines dynamic arrays that hold the data, initializes the vectors with consecutive integers starting from 1 and 2, distributes vector chunks of size vector_size / world_size to other processes in the MPI communicator, calculates a local dot product of the local vectors, performs a reduction operation on the local dot product of each process, and returns the global dot product to all processes in the MPI communicator. This example demonstrates the use of MPI_Scatter and MPI_Allreduce for efficient collective communication among processes in a distributed memory system to distribute workloads evenly among processes for efficient parallel processing.

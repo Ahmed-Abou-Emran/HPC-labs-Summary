@@ -1,0 +1,96 @@
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int matrix_size = 5;
+    const int vector_size = 5;
+    std::vector<int> matrix(matrix_size * matrix_size);
+    std::vector<int> vector(vector_size);
+    std::vector<int> result(matrix_size);
+
+    if (world_rank == 0) {
+        // Initialize matrix and vector
+        for (int i = 0; i < matrix_size; i++) {
+            for (int j = 0; j < matrix_size; j++) {
+                matrix[i * matrix_size + j] = i + j;
+            }
+            vector[i] = i + 1;
+        }
+    }
+
+    // Distribute matrix rows to other processes using MPI_Scatterv
+    std::vector<int> local_matrix(matrix_size * matrix_size / world_size);
+    MPI_Scatter(matrix.data(), matrix_size * matrix_size / world_size, MPI_INT, local_matrix.data(), matrix_size * matrix_size / world_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Broadcast vector to all processes using MPI_Bcast
+    MPI_Bcast(vector.data(), vector_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Perform vector by matrix multiplication
+    std::vector<int> local_result(matrix_size / world_size);
+    for (int i = 0; i < matrix_size / world_size; i++) {
+        local_result[i] = 0;
+        for (int j = 0; j < matrix_size; j++) {
+            local_result[i] += local_matrix[i * matrix_size + j] * vector[j];
+        }
+    }
+
+    // Gather local results from all processes using MPI_Allgather
+    MPI_Allgather(local_result.data(), matrix_size / world_size, MPI_INT, result.data(), matrix_size / world_size, MPI_INT, MPI_COMM_WORLD);
+
+    // Calculate final result by summing up all local results using MPI_Allreduce
+    int final_result;
+    MPI_Allreduce(local_result.data(), &final_result, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    if (world_rank == 0) {
+        // Print final result
+        std::cout << "Result: ";
+        for (int i = 0; i < matrix_size; i++) {
+            std::cout << result[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int matrix_size and const int vector_size and std::vector<int> matrix(matrix_size * matrix_size) and std::vector<int> vector(vector_size) and std::vector<int> result(matrix_size) define the size of the matrix, vector, and the dynamic arrays that hold the data.
+
+// The if statement for world_rank == 0 initializes the matrix with consecutive integers starting from 0 and the vector with consecutive integers starting from 1.
+
+// The MPI_Scatter(matrix.data(), matrix_size * matrix_size / world_size, MPI_INT, local_matrix.data(), matrix_size * matrix_size / world_size, MPI_INT, 0, MPI_COMM_WORLD) distributes matrix rows of size matrix_size * matrix_size / world_size to other processes in the MPI communicator.
+
+// The MPI_Bcast(vector.data(), vector_size, MPI_INT, 0, MPI_COMM_WORLD) broadcasts the vector to all processes in the MPI communicator.
+
+// The for loop performs vector by matrix multiplication of local matrix and vector and stores the local result in a dynamic array.
+
+// The MPI_Allgather(local_result.data(), matrix_size / world_size, MPI_INT, result.data(), matrix_size / world_size, MPI_INT, MPI_COMM_WORLD) gathers local results from all processes in the MPI communicator.
+
+// The MPI_Allreduce(local_result.data(), &final_result, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) performs a reduction operation on the local result of each process and returns the final result to all processes in the MPI communicator.
+
+// The if statement for world_rank == 0 prints the final result.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines dynamic arrays that hold the data, initializes the matrix with consecutive integers starting from 0 and the vector with consecutive integers starting from 1, distributes matrix rows of size matrix_size * matrix_size / world_size to other processes in the MPI communicator, broadcasts the vector to all processes in the MPI communicator, performs vector by matrix multiplication of local matrix and vector and stores the local result in a dynamic array, gathers local results from all processes in the MPI communicator, performs a reduction operation on the local result of each process, and returns the final result to all processes in the MPI communicator. This example demonstrates the use of MPI_Scatterv, MPI_Bcast, MPI_Allgather, and MPI_Allreduce for efficient collective communication among processes in a distributed memory system to distribute workloads evenly among processes for efficient parallel processing.

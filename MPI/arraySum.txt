@@ -1,0 +1,176 @@
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int array_size = 15;
+    std::vector<int> array(array_size);
+
+    if (world_rank == 0) {
+        // Initialize array
+        for (int i = 0; i < array_size; i++) {
+            array[i] = i + 1;
+        }
+
+        // Send array chunks to other processes
+        for (int i = 1; i < world_size; i++) {
+            MPI_Send(&array[(i - 1) * 5], 5, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
+    } else {
+        // Receive array chunk from master process
+        std::vector<int> chunk(5);
+        MPI_Recv(chunk.data(), 5, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        // Calculate partial sum of array chunk
+        int partial_sum = 0;
+        for (int i = 0; i < 5; i++) {
+            partial_sum += chunk[i];
+        }
+
+        // Send partial sum to master process
+        MPI_Send(&partial_sum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    }
+
+    if (world_rank == 0) {
+        // Receive partial sums from other processes and calculate final sum
+        int final_sum = 0;
+        for (int i = 1; i < world_size; i++) {
+            int partial_sum;
+            MPI_Recv(&partial_sum, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            final_sum += partial_sum;
+        }
+
+        // Calculate final sum of entire array
+        int expected_sum = (array_size * (array_size + 1)) / 2;
+        std::cout << "Final sum: " << final_sum << ", expected sum: " << expected_sum << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, <iostream>, and <vector> are header files that provide necessary functions and definitions for MPI, standard I/O in C++, and dynamic arrays in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int array_size and std::vector<int> array(array_size) define the size of the array and the dynamic array that holds the data.
+
+// The if statement for world_rank == 0 initializes the array, sends array chunks to other processes, and receives partial sums from other processes to calculate the final sum.
+
+// The for loop inside the if statement for world_rank == 0 initializes the array with consecutive integers starting from 1.
+
+// The for loop inside the if statement for world_rank == 0 sends array chunks of size 5 to other processes using MPI_Send.
+
+// The if statement for world_rank != 0 receives an array chunk from the master process, calculates a partial sum of the array chunk, and sends the partial sum to the master process.
+
+// The std::vector<int> chunk(5) defines a dynamic array that holds the chunk of the array received from the master process.
+
+// The MPI_Recv(chunk.data(), 5, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) receives the array chunk from the master process.
+
+// The for loop inside the if statement for world_rank != 0 calculates a partial sum of the array chunk.
+
+// The MPI_Send(&partial_sum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD) sends the partial sum to the master process.
+
+// The if statement for world_rank == 0 receives partial sums from other processes and calculates the final sum of the entire array.
+
+// The for loop inside the if statement for world_rank == 0 receives partial sums from other processes using MPI_Recv and calculates the final sum of the entire array.
+
+// The std::cout statement inside the if statement for world_rank == 0 prints the final sum and the expected sum of the entire array.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a dynamic array that holds the data, distributes the array to other processes in chunks of size 5, calculates partial sums of the array chunks, and calculates the final sum of the entire array by receiving partial sums from other processes. This example demonstrates the use of MPI_Send and MPI_Recv for message passing between processes and the importance of distributing workloads evenly among processes for efficient parallel processing.
+
+
+
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int array_size = 15;
+    std::vector<int> array(array_size);
+
+    if (world_rank == 0) {
+        // Initialize array
+        for (int i = 0; i < array_size; i++) {
+            array[i] = i + 1;
+        }
+    }
+
+    // Distribute array chunks to other processes using MPI_Scatter
+    std::vector<int> chunk(5);
+    MPI_Scatter(array.data(), 5, MPI_INT, chunk.data(), 5, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Calculate partial sum of array chunk
+    int partial_sum = 0;
+    for (int i = 0; i < 5; i++) {
+        partial_sum += chunk[i];
+    }
+
+    int global_sum;
+    MPI_Allreduce(&partial_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    if (world_rank == 0) {
+        // Calculate final sum of entire array
+        int expected_sum = (array_size * (array_size + 1)) / 2;
+        std::cout << "Final sum: " << global_sum << ", expected sum: " << expected_sum << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int array_size and std::vector<int> array(array_size) define the size of the array and the dynamic array that holds the data.
+
+// The if statement for world_rank == 0 initializes the array with consecutive integers starting from 1.
+
+// The MPI_Scatter(array.data(), 5, MPI_INT, chunk.data(), 5, MPI_INT, 0, MPI_COMM_WORLD) distributes array chunks of size 5 to other processes in the MPI communicator.
+
+// The std::vector<int> chunk(5) defines a dynamic array that holds the chunk of the array received from the master process.
+
+// The for loop calculates a partial sum of the array chunk.
+
+// The MPI_Allreduce(&partial_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) performs a reduction operation on the partial sum of each process and returns the global sum to all processes in the MPI communicator.
+
+// The if statement for world_rank == 0 calculates the final sum of the entire array and prints the final sum and the expected sum.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a dynamic array that holds the data, initializes the array with consecutive integers starting from 1, distributes array chunks of size 5 to other processes in the MPI communicator, calculates partial sums of the array chunks, performs a reduction operation on the partial sum of each process, and returns the global sum to all processes in the MPI communicator. This example demonstrates the use of MPI_Scatter and MPI_Allreduce for efficient collective communication among processes in a distributed memory system to distribute workloads evenly among processes for efficient parallel processing.
