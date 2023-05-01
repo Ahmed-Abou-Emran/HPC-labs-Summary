@@ -1,0 +1,340 @@
+#include <mpi.h>
+#include <iostream>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    int message_size = 1;
+    int message_buffer[message_size];
+
+    int partner_rank = (world_rank + 1) % 2;
+
+    int num_iterations = 10;
+    for (int i = 0; i < num_iterations; i++) {
+        MPI_Request send_request, recv_request;
+        MPI_Status send_status, recv_status;
+
+        // Send message to partner process
+        MPI_Isend(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, &send_request);
+
+        // Receive message from partner process
+        MPI_Irecv(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, &recv_request);
+
+        // Wait for both send and receive requests to complete
+        MPI_Wait(&send_request, &send_status);
+        MPI_Wait(&recv_request, &recv_status);
+
+        std::cout << "Process " << world_rank << " sent message " << i << " to process " << partner_rank
+            << " and received message " << message_buffer[0] << " from process " << partner_rank << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The message buffer and message size are defined using C++ syntax.
+
+// The rank of the partner process is calculated using the modulo operator.
+
+// The number of iterations for the non-blocking communication pattern is set to 10, and the loop iterates through the iterations.
+
+// MPI_Request send_request, recv_request; MPI_Status send_status, recv_status; define the send and receive requests and statuses.
+
+// MPI_Isend(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, &send_request) initiates a non-blocking send operation using MPI_Isend.
+
+// MPI_Irecv(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, &recv_request) initiates a non-blocking receive operation using MPI_Irecv.
+
+// MPI_Wait(&send_request, &send_status) and MPI_Wait(&recv_request, &recv_status) wait for the send and receive operations to complete using MPI_Wait.
+
+// std::cout << "Process " << world_rank << " sent message " << i << " to process " << partner_rank
+//     << " and received message " << message_buffer[0] << " from process " << partner_rank << std::endl; prints a message indicating that the current process sent a message to the partner process and received a message from the partner process.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a message buffer and message size for the non-blocking communication, calculates the rank of the partner process using the modulo operator, initiates non-blocking send and receive operations using MPI_Isend and MPI_Irecv, waits for the send and receive operations to complete using MPI_Wait, and prints messages indicating the sending and receiving of messages. This example demonstrates the use of MPI non-blocking communication functions in C++.
+
+
+
+
+#include <mpi.h>
+#include <iostream>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    if (world_rank == 0) {
+        int message_size = 1;
+        int message_buffer[message_size];
+        std::cout << "Process 0 sending message to process 1" << std::endl;
+        MPI_Send(message_buffer, message_size, MPI_INT, 1, 0, MPI_COMM_WORLD);
+
+        std::cout << "Process 0 receiving message from process 1" << std::endl;
+        MPI_Recv(message_buffer, message_size, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else if (world_rank == 1) {
+        int message_size = 1;
+        int message_buffer[message_size];
+        std::cout << "Process 1 receiving message from process 0" << std::endl;
+        MPI_Recv(message_buffer, message_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        std::cout << "Process 1 sending message to process 0" << std::endl;
+        MPI_Send(message_buffer, message_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// The first if statement sends a message from process 0 to process 1 using MPI_Send and then waits for a message from process 1 using MPI_Recv. 
+
+// The second if statement receives a message from process 0 using MPI_Recv and then sends a message to process 0 using MPI_Send.
+
+// If we run this program with 2 processes, it will result in a deadlock because both processes are waiting for each other to complete their respective receive operations before they can proceed to the send operations. This is because the send and receive operations are blocking, which means that they do not return until the operation is completed.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank of the current process, sends and receives messages between two processes using blocking send and receive operations, and results in deadlock because both processes are waiting for each other to complete their respective receive operations before they can proceed to the send operations. This example demonstrates the problem of deadlock in MPI code and the importance of using non-blocking communication or a different communication pattern that does not require both processes to wait for each other.
+
+
+
+#include <mpi.h>
+#include <iostream>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    int message_size = 1;
+    int message_buffer[message_size];
+
+    int partner_rank = (world_rank + 1) % 2;
+
+    for (int i = 0; i < 10; i++) {
+        MPI_Sendrecv(message_buffer, message_size, MPI_INT, partner_rank, 0,
+            message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        std::cout << "Process " << world_rank << " received message " << message_buffer[0]
+            << " from process " << partner_rank << " and sent message " << i << " to process " << partner_rank << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The message buffer and message size are defined using C++ syntax.
+
+// The rank of the partner process is calculated using the modulo operator.
+
+// The Sendrecv operation sends a message to the partner process and receives a message from the partner process in a single function call. It takes the following arguments:
+
+// - send_buffer: pointer to the send buffer
+// - send_count: number of elements in the send buffer
+// - send_type: data type of the elements in the send buffer
+// - dest: rank of the destination process
+// - send_tag: message tag for the send operation
+// - recv_buffer: pointer to the receive buffer
+// - recv_count: number of elements in the receive buffer
+// - recv_type: data type of the elements in the receive buffer
+// - source: rank of the source process
+// - recv_tag: message tag for the receive operation
+// - comm: MPI communicator
+// - status: pointer to the receive status object
+
+// The for loop iterates through the number of iterations and performs a Sendrecv operation in each iteration. The Sendrecv operation sends a message from the current process to the partner process and receives a message from the partner process.
+
+// The standard output prints the rank of the current process, the received message value, the rank of the partner process, and the sent message value.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines the message buffer and size, calculates the rank of the partner process, performs a Sendrecv operation to send and receive messages between two processes in a single function call, and prints the received and sent messages for each iteration of the loop. This example demonstrates the use of MPI_Sendrecv for efficient message passing between two processes.
+
+
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int array_size = 10;
+    std::vector<int> array(array_size);
+    int local_sum = 0;
+
+    // Initialize array with consecutive integers starting from 1
+    for (int i = 0; i < array_size; i++) {
+        array[i] = i + 1;
+        local_sum += array[i];
+    }
+
+    int global_sum;
+    MPI_Allreduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    std::cout << "Process " << world_rank << " local sum: " << local_sum << ", global sum: " << global_sum << std::endl;
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int array_size and std::vector<int> array(array_size) define the size of the array and the dynamic array that holds the data.
+
+// The for loop initializes the array with consecutive integers starting from 1 and calculates the local sum.
+
+// The MPI_Allreduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) performs a reduction operation on the local sum of each process and returns the global sum to all processes. It takes the following arguments:
+
+// - sendbuf: pointer to the send buffer
+// - recvbuf: pointer to the receive buffer
+// - count: number of elements in the buffer
+// - datatype: data type of the elements in the buffer
+// - op: reduction operation to perform
+// - comm: MPI communicator
+
+// The std::cout statement prints the local sum and global sum for each process.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a dynamic array that holds the data, initializes the array with consecutive integers starting from 1, calculates the local sum of the array, performs a reduction operation on the local sum of each process, and returns the global sum to all processes. This example demonstrates the use of MPI_Allreduce for efficient collective communication among processes in a distributed memory system.
+
+
+
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    const int array_size = 15;
+    std::vector<int> array(array_size);
+
+    if (world_rank == 0) {
+        // Initialize array
+        for (int i = 0; i < array_size; i++) {
+            array[i] = i + 1;
+        }
+    }
+
+    // Distribute array chunks to other processes using MPI_Scatter
+    std::vector<int> chunk(5);
+    MPI_Scatter(array.data(), 5, MPI_INT, chunk.data(), 5, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Calculate partial sum of array chunk
+    int partial_sum = 0;
+    for (int i = 0; i < 5; i++) {
+        partial_sum += chunk[i];
+    }
+
+    int global_sum;
+    MPI_Allreduce(&partial_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    if (world_rank == 0) {
+        // Calculate final sum of entire array
+        int expected_sum = (array_size * (array_size + 1)) / 2;
+        std::cout << "Final sum: " << global_sum << ", expected sum: " << expected_sum << std::endl;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h>, and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The const int array_size and std::vector<int> array(array_size) define the size of the array and the dynamic array that holds the data.
+
+// The if statement for world_rank == 0 initializes the array with consecutive integers starting from 1.
+
+// The MPI_Scatter(array.data(), 5, MPI_INT, chunk.data(), 5, MPI_INT, 0, MPI_COMM_WORLD) distributes array chunks of size 5 to other processes in the MPI communicator.
+
+// The std::vector<int> chunk(5) defines a dynamic array that holds the chunk of the array received from the master process.
+
+// The for loop calculates a partial sum of the array chunk.
+
+// The MPI_Allreduce(&partial_sum, &global_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD) performs a reduction operation on the partial sum of each process and returns the global sum to all processes in the MPI communicator.
+
+// The if statement for world_rank == 0 calculates the final sum of the entire array and prints the final sum and the expected sum.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a dynamic array that holds the data, initializes the array with consecutive integers starting from 1, distributes array chunks of size 5 to other processes in the MPI communicator, calculates partial sums of the array chunks, performs a reduction operation on the partial sum of each process, and returns the global sum to all processes in the MPI communicator. This example demonstrates the use of MPI_Scatter and MPI_Allreduce for efficient collective communication among processes in a distributed memory system to distribute workloads evenly among processes for efficient parallel processing.
