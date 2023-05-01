@@ -1,0 +1,95 @@
+// This program uses parallel for scheduling in OpenMP to compute the sum of two arrays.
+// We demonstrate the use of three different scheduling policies (static, dynamic, and guided) with a chunk size of 2.
+// We print the thread number and iteration number for each loop to show how the work is divided among the threads. 
+// The program is then used to print the resulting array c.
+
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+   int i, n = 10, chunk = 2;
+   int a[n], b[n], c[n];
+
+   // Set the number of threads to use in parallel regions
+   omp_set_num_threads(4);
+
+   // Initialize the arrays a and b
+   for (i = 0; i < n; i++) {
+      a[i] = i;
+      b[i] = i * 2;
+   }
+
+   // Use static scheduling with a chunk size of 2
+   #pragma omp parallel for schedule(static, chunk)
+   for (i = 0; i < n; i++) {
+      c[i] = a[i] + b[i];
+      cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+   }
+
+   // Use dynamic scheduling with a chunk size of 2
+   #pragma omp parallel for schedule(dynamic, chunk)
+   for (i = 0; i < n; i++) {
+      c[i] = a[i] + b[i];
+      cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+   }
+
+   // Use guided scheduling with a minimum chunk size of 2
+   #pragma omp parallel for schedule(guided, chunk)
+   for (i = 0; i < n; i++) {
+      c[i] = a[i] + b[i];
+      cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+   }
+
+   // Print the results
+   for (i = 0; i < n; i++) {
+      cout << c[i] << " ";
+   }
+   cout << endl;
+
+   return 0;
+}
+
+
+
+// This program uses the parallel for nowait construct in OpenMP to compute the sum of two arrays.
+// We demonstrate that the nowait clause allows a thread to continue executing beyond the parallel for loop without waiting for all other threads to complete.
+// We include a print statement to show that the thread can execute other work beyond the parallel for loop. 
+// The program is then used to print the resulting array c.
+
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+   int i, n = 10;
+   int a[n], b[n], c[n];
+
+   // Initialize the arrays a and b
+   for (i = 0; i < n; i++) {
+      a[i] = i;
+      b[i] = i * 2;
+   }
+
+   #pragma omp parallel
+   {
+      #pragma omp for nowait
+      for (i = 0; i < n; i++) {
+         c[i] = a[i] + b[i];
+         cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+      }
+
+      // Do some other work here that doesn't depend on c
+      cout << "Thread " << omp_get_thread_num() << " doing some other work" << endl;
+   }
+
+   // Print the results
+   for (i = 0; i < n; i++) {
+      cout << c[i] << " ";
+   }
+   cout << endl;
+
+   return 0;
+}
