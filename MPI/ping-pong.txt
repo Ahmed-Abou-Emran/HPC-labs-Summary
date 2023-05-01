@@ -1,0 +1,68 @@
+#include <mpi.h>
+#include <iostream>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    int message_size = 1;
+    int message_buffer[message_size];
+
+    int partner_rank = (world_rank + 1) % 2;
+
+    int num_iterations = 10;
+    for (int i = 0; i < num_iterations; i++) {
+        if (world_rank == i % 2) {
+            // Send message to partner process
+            message_buffer[0] = i;
+            MPI_Send(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD);
+            std::cout << "Process " << world_rank << " sent message " << i << " to process " << partner_rank << std::endl;
+        } else {
+            // Receive message from partner process
+            MPI_Recv(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            std::cout << "Process " << world_rank << " received message " << message_buffer[0] << " from process " << partner_rank << std::endl;
+        }
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator.
+
+// The message buffer and message size are defined using C++ syntax.
+
+// The rank of the partner process is calculated using the modulo operator.
+
+// The number of iterations for the ping-pong game is set to 10, and the loop iterates through the iterations.
+
+// if (world_rank == i % 2) sends a message to the partner process if the current iteration number is even and the current process rank is even.
+
+// MPI_Send(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD) sends the message to the partner process using MPI_Send.
+
+// std::cout << "Process " << world_rank << " sent message " << i << " to process " << partner_rank << std::endl; prints a message indicating that the current process sent a message to the partner process.
+
+// else receives a message from the partner process if the current iteration number is odd and the current process rank is odd.
+
+// MPI_Recv(message_buffer, message_size, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE) receives the message from the partner process using MPI_Recv.
+
+// std::cout << "Process " << world_rank << " received message " << message_buffer[0] << " from process " << partner_rank << std::endl; prints a message indicating that the current process received a message from the partner process.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the rank and size of the current process, defines a message buffer and message size for the point-to-point communication, calculates the rank of the partner process using the modulo operator, sends and receives messages between two processes in a ping-pong game using MPI_Send and MPI_Recv, and prints messages indicating the sending and receiving of messages. This example demonstrates the use of MPI point-to-point communication functions in C++ for a classic ping-pong game.
