@@ -1,0 +1,155 @@
+// This program demonstrates the use of the work-sharing constructs in OpenMP.
+// We use the for construct to distribute a loop iteration across multiple threads,
+// the sections construct to divide the program into sections that can be executed in parallel by different threads,
+// and the single construct to specify a block of code that should be executed by a single thread.
+
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+   int i, j, n = 10;
+   int a[n], b[n], c[n];
+
+   // Initialize the arrays a and b
+   for (i = 0; i < n; i++) {
+      a[i] = i;
+      b[i] = i * 2;
+   }
+
+   // Use the for construct to distribute the loop iteration across multiple threads
+   #pragma omp parallel for
+   for (i = 0; i < n; i++) {
+      c[i] = a[i] + b[i];
+      cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+   }
+
+   // Use the sections construct to divide the program into sections that can be executed in parallel by different threads
+   #pragma omp parallel sections
+   {
+      #pragma omp section
+      {
+         for (i = 0; i < n; i++) {
+            a[i] += 1;
+            cout << "Thread " << omp_get_thread_num() << " executing section 1 iteration " << i << endl;
+         }
+      }
+
+      #pragma omp section
+      {
+         for (j = 0; j < n; j++) {
+            b[j] += 2;
+            cout << "Thread " << omp_get_thread_num() << " executing section 2 iteration " << j << endl;
+         }
+      }
+   }
+
+   // Use the single construct to specify a block of code that should be executed by a single thread
+   #pragma omp parallel
+   {
+      #pragma omp single
+      {
+         cout << "Thread " << omp_get_thread_num() << " executing single block" << endl;
+         // single code here
+      }
+   }
+
+   return 0;
+}
+
+// Explanation:
+// This program demonstrates the use of the work-sharing constructs in OpenMP.
+// We first define integer variables i, j, and n to use in our loops, as well as arrays a, b, and c to store our results.
+// We use the for construct to distribute the loop iteration across multiple threads,
+// with each thread computing the sum of two elements from arrays a and b and storing the result in array c.
+// We use the sections construct to divide the program into sections that can be executed in parallel by different threads,
+// with each section updating a different array and printing out the thread number and iteration number for each update.
+// We use the single construct to specify a block of code that should be executed by a single thread,
+// with each thread printing out the thread number when it executes the single block.
+
+// Explanation summary:
+// This program demonstrates the use of the work-sharing constructs in OpenMP.
+// The for construct is used to distribute the loop iteration across multiple threads,
+// the sections construct is used to divide the program into sections that can be executed in parallel by different threads,
+// and the single construct is used to specify a block of code that should be executed by a single thread.
+// The program then prints out the thread number and iteration number for each update and for executing the single block.
+
+
+
+
+// This program demonstrates the use of the synchronization directives in OpenMP.
+// We use the critical directive to ensure that only one thread at a time can execute a specific block of code,
+// the atomic directive to ensure that a specific memory operation is executed atomically,
+// and the barrier directive to ensure that all threads have completed a specific section of code before continuing.
+
+#include <iostream>
+#include <omp.h>
+
+using namespace std;
+
+int main() {
+   int i, n = 10;
+   int a[n], b[n], sum = 0;
+
+   // Initialize the arrays a and b
+   for (i = 0; i < n; i++) {
+      a[i] = i;
+      b[i] = i * 2;
+   }
+
+   // Use the critical directive to ensure that only one thread at a time can update the sum variable
+   #pragma omp parallel for
+   for (i = 0; i < n; i++) {
+      #pragma omp critical
+      {
+         sum += a[i] + b[i];
+         cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+      }
+   }
+
+   // Use the atomic directive to ensure that the update of sum variable is executed atomically
+   #pragma omp parallel for
+   for (i = 0; i < n; i++) {
+      #pragma omp atomic
+      sum += a[i] + b[i];
+      cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+   }
+
+   // Use the barrier directive to ensure that all threads have completed the first loop before continuing
+   #pragma omp barrier
+
+   // Use the critical directive to ensure that only one thread at a time can update the sum variable
+   #pragma omp parallel for
+   for (i = 0; i < n; i++) {
+      #pragma omp critical
+      {
+         sum += a[i] * b[i];
+         cout << "Thread " << omp_get_thread_num() << " executing iteration " << i << endl;
+      }
+   }
+
+   // Print the final value of sum
+   cout << "The final sum is " << sum << endl;
+
+   return 0;
+}
+
+// Explanation:
+// This program demonstrates the use of the synchronization directives in OpenMP.
+// We first define integer variables i, n, and sum to use in our loops, as well as arrays a and b to store our results.
+// We use the critical directive to ensure that only one thread at a time can update the sum variable in the first loop,
+// with each thread computing the sum of two elements from arrays a and b and storing the result in the sum variable.
+// We use the atomic directive to ensure that the update of sum variable is executed atomically in the second loop,
+// with each thread computing the sum of two elements from arrays a and b and adding it to the sum variable.
+// We use the barrier directive to ensure that all threads have completed the first loop before continuing to the second loop.
+// We use the critical directive again to ensure that only one thread at a time can update the sum variable in the third loop,
+// with each thread computing the product of two elements from arrays a and b and adding it to the sum variable.
+// Finally, we print the final value of the sum variable.
+
+// Explanation summary:
+// This program demonstrates the use of the synchronization directives in OpenMP.
+// The critical directive is used to ensure that only one thread at a time can execute a specific block of code,
+// the atomic directive is used to ensure that a specific memory operation is executed atomically,
+// and the barrier directive is used to ensure that all threads have completed a specific section of code before continuing.
+// The program then prints out the thread number and iteration number for each update and the final value of the sum variable.
