@@ -1,0 +1,101 @@
+#include <mpi.h>
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+    // Initialize MPI environment
+    MPI_Init(&argc, &argv);
+
+    // Get the total number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    // Get the rank of the current process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    // Print a message from each process
+    printf("Hello from process %d of %d\n", world_rank, world_size);
+
+    // Finalize MPI environment
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and #include <stdio.h> are header files that provide necessary functions and definitions for MPI and standard I/O.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator.
+
+// printf("Hello from process %d of %d\n", world_rank, world_size) prints a message that includes the rank and total number of processes for each process.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the total number of processes and rank of the current process, prints a message from each process, and finalizes the MPI environment. This basic example demonstrates the use of MPI functions for parallel programming.
+
+
+
+
+#include <mpi.h>
+#include <iostream>
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+    
+    // Get the total number of processes and the rank of the current process
+    int world_size, world_rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    
+    // Define the message buffer and message size
+    int message_size = 1;
+    int message_buffer[message_size];
+    
+    if (world_rank == 0) {
+        // Initialize the message buffer
+        message_buffer[0] = 42;
+        
+        // Send the message to process 1
+        MPI_Send(message_buffer, message_size, MPI_INT, 1, 0, MPI_COMM_WORLD);
+        std::cout << "Process " << world_rank << " sent message '" << message_buffer[0] << "' to process 1" << std::endl;
+    } else if (world_rank == 1) {
+        // Receive the message from process 0
+        MPI_Recv(message_buffer, message_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        std::cout << "Process " << world_rank << " received message '" << message_buffer[0] << "' from process 0" << std::endl;
+    }
+    
+    MPI_Finalize();
+    return 0;
+}
+
+/******** Explanation ********/
+
+// MPI (Message Passing Interface) is a standardized library specification for message passing parallel computing. It allows multiple processes to communicate and synchronize with each other on a distributed memory system.
+
+// #include <mpi.h> and <iostream> are header files that provide necessary functions and definitions for MPI and standard I/O in C++.
+
+// MPI_Init(&argc, &argv) initializes the MPI environment with command line arguments argc and argv.
+
+// MPI_Comm_size(MPI_COMM_WORLD, &world_size) retrieves the total number of processes in the current MPI communicator, which is MPI_COMM_WORLD in this case.
+
+// MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) retrieves the rank of the current process in the MPI communicator.
+
+// The message buffer and message size are defined using C++ syntax.
+
+// if (world_rank == 0) initializes the message buffer with a value of 42 and sends the message to process 1 using MPI_Send.
+
+// else if (world_rank == 1) receives the message from process 0 using MPI_Recv and prints the received message using C++ syntax.
+
+// MPI_Finalize() finalizes the MPI environment before exiting the program.
+
+/******** Summary ********/
+
+// This code initializes the MPI environment, retrieves the total number of processes and rank of the current process, defines a message buffer and message size for the point-to-point communication, sends a message from process 0 to process 1 using MPI_Send, receives the message from process 0 in process 1 using MPI_Recv, and prints the received message using C++ syntax. This basic example demonstrates the use of MPI point-to-point communication functions in C++.
